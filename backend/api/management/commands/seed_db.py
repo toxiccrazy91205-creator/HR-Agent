@@ -2,12 +2,24 @@ import os
 import datetime
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from django.conf import settings
 from api.models import JobRole, Candidate, Interview, EmailLog
 
 class Command(BaseCommand):
     help = 'Seeds the database with job roles, candidates, and interviews for testing'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Force seeding even if data already exists',
+        )
+
     def handle(self, *args, **options):
+        if not options.get('force') and JobRole.objects.exists():
+            self.stdout.write("Database already has JobRole data. Skipping seeding. Use --force to override.")
+            return
+
         self.stdout.write("Seeding database...")
 
         # 1. Clear existing data to avoid duplicates
@@ -41,7 +53,7 @@ class Command(BaseCommand):
 
         # 3. Create Candidates
         # Make a dummy resume file on disk inside the media folder
-        media_resumes_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), 'media', 'resumes')
+        media_resumes_dir = os.path.join(settings.MEDIA_ROOT, 'resumes')
         os.makedirs(media_resumes_dir, exist_ok=True)
         dummy_file_path = os.path.join(media_resumes_dir, 'seeded_dummy.pdf')
         if not os.path.exists(dummy_file_path):

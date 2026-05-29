@@ -39,6 +39,7 @@ services:
     command: >
       sh -c "python manage.py makemigrations api &&
             python manage.py migrate &&
+            if [ \"\$\$SEED_DB\" = \"True\" ]; then python manage.py seed_db; fi &&
             python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/app
@@ -56,6 +57,7 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - MOCK_CALENDAR=${MOCK_CALENDAR:-True}
       - GOOGLE_CALENDAR_CREDENTIALS=${GOOGLE_CALENDAR_CREDENTIALS}
+      - SEED_DB=${SEED_DB:-True}
     ports:
       - "8002:8000"
     depends_on:
