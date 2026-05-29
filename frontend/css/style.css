@@ -225,6 +225,8 @@ body {
   gap: var(--spacing-sm);
   overflow-y: auto;
   padding-right: var(--spacing-xs);
+  flex: 1;
+  min-height: 0;
 }
 
 .empty-state {
@@ -669,6 +671,7 @@ body {
 
 .chat-messages-area {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--spacing-lg);
   display: flex;
