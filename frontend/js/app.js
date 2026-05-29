@@ -3,7 +3,10 @@
    Vanilla JS Client-Side Logic
    ========================================== */
 
-const API_BASE = '/api';
+// Set this to your absolute backend URL in production (e.g. 'https://hr-backend.onrender.com')
+// If left empty, it defaults to the relative path '/api' (same domain)
+const BACKEND_URL = ''; 
+const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 let activeSessionId = 'session_' + Math.floor(Math.random() * 1000000);
 let pollingInterval = null;
 

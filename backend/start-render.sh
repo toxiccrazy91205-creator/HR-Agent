@@ -9,8 +9,5 @@ echo "Connecting to database: $DB_HOST_LOG"
 python manage.py makemigrations api --noinput
 python manage.py migrate --noinput
 
-echo "Starting Celery Worker in the background..."
-celery -A core worker -l info --concurrency=1 &
-
 echo "Starting Gunicorn Server on port $PORT..."
 gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
