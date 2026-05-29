@@ -1,0 +1,138 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: hr_db
+    environment:
+      - POSTGRES_DB=hr_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    ports:
+      - "5433:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    container_name: hr_redis
+    expose:
+      - 6379
+    ports:
+      - "6380:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 256M
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hr_backend
+    command: >
+      sh -c "python manage.py makemigrations api &&
+            python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app
+      - media_volume:/app/media
+      - data_volume:/app/data
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-hr-automation-secret-key-12345
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/hr_db
+      - REDIS_URL=redis://redis:6379/0
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - MOCK_CALENDAR=${MOCK_CALENDAR:-True}
+      - GOOGLE_CALENDAR_CREDENTIALS=${GOOGLE_CALENDAR_CREDENTIALS}
+    ports:
+      - "8002:8000"
+    depends_on:
+      - db
+      - redis
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1.5G
+
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hr_celery
+    command: celery -A core worker -l info --concurrency=1
+    volumes:
+      - ./backend:/app
+      - media_volume:/app/media
+      - data_volume:/app/data
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-hr-automation-secret-key-12345
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/hr_db
+      - REDIS_URL=redis://redis:6379/0
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - MOCK_CALENDAR=${MOCK_CALENDAR:-True}
+      - GOOGLE_CALENDAR_CREDENTIALS=${GOOGLE_CALENDAR_CREDENTIALS}
+    depends_on:
+      - db
+      - redis
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1.5G
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hr_frontend
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    expose:
+      - 80
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+  nginx:
+    image: nginx:alpine
+    container_name: hr_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+volumes:
+  postgres_data:
+  media_volume:
+  data_volume:

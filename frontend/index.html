@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity HR - Agentic Automation System</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- SIDEBAR PANEL (LEFT) - Jobs & Uploads -->
+        <aside class="sidebar-panel glass-panel">
+            <div class="brand-section">
+                <i class="fa-solid fa-wand-magic-sparkles brand-logo"></i>
+                <div class="brand-info">
+                    <h2>Antigravity HR</h2>
+                    <span>Autonomous Assistant</span>
+                </div>
+            </div>
+
+            <!-- Job Roles Section -->
+            <div class="panel-section">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-briefcase"></i> Active Job Roles</h3>
+                    <button id="add-job-btn" class="icon-btn" title="Create New Job Role">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <div id="job-list" class="item-list scroll-container">
+                    <!-- Loaded dynamically -->
+                    <div class="empty-state">No job roles defined yet.</div>
+                </div>
+            </div>
+
+            <!-- Resume Ingestion Section -->
+            <div class="panel-section upload-section">
+                <h3><i class="fa-solid fa-file-arrow-up"></i> Ingest Resumes</h3>
+                <div class="job-select-wrapper">
+                    <label for="upload-job-select">Target Position:</label>
+                    <select id="upload-job-select" class="glass-select">
+                        <option value="">Select a role...</option>
+                    </select>
+                </div>
+                <div id="dropzone" class="dropzone-area">
+                    <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                    <p>Drag & drop resumes or <span>browse</span></p>
+                    <small>Supports PDF only</small>
+                    <input type="file" id="file-input" multiple accept=".pdf" style="display: none;">
+                </div>
+                <div id="upload-status" class="upload-status-box" style="display: none;">
+                    <div class="progress-bar-container">
+                        <div id="upload-progress" class="progress-fill"></div>
+                    </div>
+                    <span id="upload-text">Uploading...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- CHAT CONSOLE (MIDDLE) - AI Agent Interaction -->
+        <main class="chat-console">
+            <header class="chat-header glass-panel">
+                <div class="agent-profile">
+                    <div class="agent-avatar">
+                        <div class="avatar-glow"></div>
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="agent-details">
+                        <h2>HR Orchestrator</h2>
+                        <div class="agent-status">
+                            <span class="status-indicator online"></span>
+                            <span id="agent-status-text">Ready to recruit</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="clear-chat-btn" class="glass-btn" title="Clear Chat History">
+                        <i class="fa-solid fa-trash-can"></i> Clear Chat
+                    </button>
+                </div>
+            </header>
+
+            <div id="chat-messages" class="chat-messages-area scroll-container">
+                <!-- Messages populate here -->
+                <div class="message assistant-message welcome-msg">
+                    <div class="message-content">
+                        <h3>Welcome to Antigravity HR! ⚡</h3>
+                        <p>I am your autonomous recruitment assistant. You can prompt me to perform tasks like:</p>
+                        <ul class="welcome-bullets">
+                            <li><i class="fa-solid fa-circle-check"></i> Evaluate resume matches and score technical profiles.</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Rank candidates and search skills semantically.</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Draft and send updates via SMTP.</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Coordinate and schedule interviews in calendar.</li>
+                        </ul>
+                        <p>Let's get started. Create a Job Role on the left, upload resumes, or query candidates!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions -->
+            <div id="quick-tags" class="quick-tags-container">
+                <button class="tag-btn" data-query="Give me the top 3 candidates">Top Candidates</button>
+                <button class="tag-btn" data-query="Who knows Django and Docker?">Search Django & Docker</button>
+                <button class="tag-btn" data-query="Show pending interviews">View Interviews</button>
+                <button class="tag-btn" data-query="Send follow-up email to shortlisted candidates">Send Follow-ups</button>
+            </div>
+
+            <footer class="chat-input-container glass-panel">
+                <div id="agent-logs" class="agent-execution-logs" style="display: none;">
+                    <div class="log-header">
+                        <span class="pulse-icon"><i class="fa-solid fa-cog fa-spin"></i></span>
+                        <span id="log-current-action">Agent thinking...</span>
+                    </div>
+                    <div id="log-steps" class="log-steps-list"></div>
+                </div>
+                <form id="chat-form" class="chat-form-input">
+                    <input type="text" id="chat-input" placeholder="Ask your HR Assistant to schedule, search, rank, or send emails..." autocomplete="off">
+                    <button type="submit" id="send-btn" class="send-submit-btn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </footer>
+        </main>
+
+        <!-- DASHBOARD PANEL (RIGHT) - Real-time Statistics -->
+        <aside class="dashboard-panel glass-panel">
+            <!-- Candidate Pipeline Section -->
+            <div class="panel-section">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-users-viewfinder"></i> Candidate Matches</h3>
+                    <button id="refresh-candidates-btn" class="icon-btn" title="Refresh Candidates">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                    </button>
+                </div>
+                <div id="candidate-list" class="item-list scroll-container">
+                    <!-- Dynamically populated cards -->
+                    <div class="empty-state">No candidates uploaded yet.</div>
+                </div>
+            </div>
+
+            <!-- Upcoming Interviews Section -->
+            <div class="panel-section">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-calendar-days"></i> Upcoming Interviews</h3>
+                </div>
+                <div id="interview-list" class="item-list scroll-container">
+                    <!-- Dynamically populated -->
+                    <div class="empty-state">No interviews scheduled yet.</div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- CREATE JOB MODAL -->
+    <div id="job-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Create New Job Role</h2>
+                <button id="close-modal-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="job-form">
+                <div class="form-group">
+                    <label for="job-title">Job Title</label>
+                    <input type="text" id="job-title" placeholder="e.g. Python Backend Developer" required class="glass-input">
+                </div>
+                <div class="form-group">
+                    <label for="job-desc">Job Description</label>
+                    <textarea id="job-desc" placeholder="Describe the role requirements and context..." required class="glass-input" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="job-skills">Required Skills (Comma separated)</label>
+                    <input type="text" id="job-skills" placeholder="e.g. Python, Django, Docker, PostgreSQL" required class="glass-input">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancel-job-btn" class="glass-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">Save Job Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
