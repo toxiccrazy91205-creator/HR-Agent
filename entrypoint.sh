@@ -10,6 +10,7 @@ sed -i "s/PORT_PLACEHOLDER/$PORT/g" /etc/nginx/sites-available/default
 # Set internal fallbacks for Database and Redis URL since we are running locally inside the same container
 export DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@127.0.0.1:5432/hr_db}
 export REDIS_URL=${REDIS_URL:-redis://127.0.0.1:6379/0}
+export CELERY_TASK_ALWAYS_EAGER=${CELERY_TASK_ALWAYS_EAGER:-True}
 
 # --- PostgreSQL Setup ---
 echo "Initializing PostgreSQL..."
@@ -22,9 +23,9 @@ if [ ! -d "/var/lib/postgresql/data/base" ]; then
     su - postgres -c "/usr/lib/postgresql/15/bin/initdb -D /var/lib/postgresql/data"
 fi
 
-# Start PostgreSQL service locally
-echo "Starting PostgreSQL..."
-su - postgres -c "/usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/data -o '-c listen_addresses=127.0.0.1' -l /var/lib/postgresql/data/logfile start"
+# Start PostgreSQL service locally (with low memory optimizations for 512MB RAM limit)
+echo "Starting PostgreSQL with low-memory configuration..."
+su - postgres -c "/usr/lib/postgresql/15/bin/pg_ctl -D /var/lib/postgresql/data -o '-c listen_addresses=127.0.0.1 -c max_connections=10 -c shared_buffers=16MB -c work_mem=1MB -c maintenance_work_mem=8MB -c temp_buffers=8MB' -l /var/lib/postgresql/data/logfile start"
 
 # Wait for PostgreSQL to start
 until su - postgres -c "pg_isready" 2>/dev/null; do
@@ -38,8 +39,12 @@ su - postgres -c "psql -c \"CREATE USER postgres WITH SUPERUSER PASSWORD 'postgr
 su - postgres -c "psql -c \"CREATE DATABASE hr_db OWNER postgres;\"" || true
 
 # --- Redis Setup ---
-echo "Starting Redis..."
-redis-server --daemonize yes
+if [ "$CELERY_TASK_ALWAYS_EAGER" != "True" ]; then
+    echo "Starting Redis..."
+    redis-server --daemonize yes
+else
+    echo "Skipping Redis startup (Running in low-memory Eager Celery mode)..."
+fi
 
 # --- Django Setup ---
 echo "Running Django migrations..."
