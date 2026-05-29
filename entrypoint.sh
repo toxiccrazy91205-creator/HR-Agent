@@ -13,9 +13,12 @@ export REDIS_URL=${REDIS_URL:-redis://127.0.0.1:6379/0}
 
 # --- PostgreSQL Setup ---
 echo "Initializing PostgreSQL..."
+# Make sure the PGDATA directory exists and is owned by postgres
+mkdir -p /var/lib/postgresql/data
+chown -R postgres:postgres /var/lib/postgresql/data
+
 # Initialize DB cluster if not already done
 if [ ! -d "/var/lib/postgresql/data/base" ]; then
-    chown -R postgres:postgres /var/lib/postgresql/data
     su - postgres -c "/usr/lib/postgresql/15/bin/initdb -D /var/lib/postgresql/data"
 fi
 

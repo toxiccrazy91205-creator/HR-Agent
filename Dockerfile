@@ -19,7 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Set up Postgres environment
 ENV PGDATA=/var/lib/postgresql/data
-RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql
+RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql \
+    && mkdir -p /var/lib/postgresql/data && chown -R postgres:postgres /var/lib/postgresql/data
 
 WORKDIR /app
 
