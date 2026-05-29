@@ -1,18 +1,13 @@
 import re
 import json
 import fitz  # PyMuPDF
-import spacy
 import logging
 from .llm_service import LLMService
 
 logger = logging.getLogger(__name__)
 
-# Load small English pipeline for text cleaning/nlp operations
-try:
-    nlp = spacy.load("en_core_web_sm")
-except IOError:
-    # Fallback to importing spacy and handling if model not pre-downloaded
-    nlp = None
+# Initialize nlp as None, loaded dynamically if needed
+nlp = None
 
 class ResumeParserService:
     @classmethod
@@ -43,7 +38,16 @@ class ResumeParserService:
         text = re.sub(r'\s+', ' ', text)
         text = text.strip()
         
-        # Optionally process through spaCy
+        # Optionally process through spaCy loaded dynamically
+        global nlp
+        if nlp is None:
+            try:
+                import spacy
+                nlp = spacy.load("en_core_web_sm")
+            except Exception as e:
+                logger.warning(f"Could not load spaCy: {str(e)}")
+                nlp = None
+
         if nlp:
             doc = nlp(text[:100000])  # Cap size to prevent spaCy overhead
             # Join tokens that are not punctuation or spaces

@@ -3,7 +3,6 @@ import json
 import logging
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -19,6 +18,7 @@ class VectorService:
         Lazy loader for the SentenceTransformer model.
         """
         if cls._model is None:
+            from sentence_transformers import SentenceTransformer
             logger.info("Initializing SentenceTransformer model 'all-MiniLM-L6-v2'...")
             cls._model = SentenceTransformer("all-MiniLM-L6-v2")
         return cls._model
