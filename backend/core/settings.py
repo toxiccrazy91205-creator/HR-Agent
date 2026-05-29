@@ -54,8 +54,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database Configuration
+from urllib.parse import urlparse, parse_qs
+
 database_url = os.environ.get('DATABASE_URL', 'postgres://postgres:postgres@db:5432/hr_db')
 parsed = urlparse(database_url)
+options = {
+    'connect_timeout': 10,
+}
+if parsed.query:
+    query_params = parse_qs(parsed.query)
+    if 'sslmode' in query_params:
+        options['sslmode'] = query_params['sslmode'][0]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -64,6 +74,7 @@ DATABASES = {
         'PASSWORD': parsed.password,
         'HOST': parsed.hostname,
         'PORT': parsed.port or 5432,
+        'OPTIONS': options,
     }
 }
 

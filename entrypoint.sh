@@ -43,9 +43,12 @@ redis-server --daemonize yes
 
 # --- Django Setup ---
 echo "Running Django migrations..."
+# Extract database host for deployment side logging (masking credentials)
+DB_HOST_LOG=$(echo "$DATABASE_URL" | sed -E 's/postgres:\/\/[^@]+@/postgres:\/\/*****@/')
+echo "Connecting to database: $DB_HOST_LOG"
 cd /app/backend
-python manage.py makemigrations api
-python manage.py migrate
+python manage.py makemigrations api --noinput
+python manage.py migrate --noinput
 
 # Seed database automatically if requested
 if [ "$SEED_DB" = "True" ]; then

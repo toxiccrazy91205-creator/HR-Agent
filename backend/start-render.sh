@@ -3,8 +3,11 @@
 set -e
 
 echo "Applying Django Database Migrations..."
-python manage.py makemigrations api
-python manage.py migrate
+# Extract database host for deployment side logging (masking credentials)
+DB_HOST_LOG=$(echo "$DATABASE_URL" | sed -E 's/postgres:\/\/[^@]+@/postgres:\/\/*****@/')
+echo "Connecting to database: $DB_HOST_LOG"
+python manage.py makemigrations api --noinput
+python manage.py migrate --noinput
 
 echo "Starting Celery Worker in the background..."
 celery -A core worker -l info --concurrency=1 &
